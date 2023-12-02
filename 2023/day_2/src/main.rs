@@ -2,7 +2,7 @@ struct Solution;
 
 impl Solution {
     pub fn prepare() -> Vec<Game> {
-        let input = include_str!("./input").lines();
+        let input = include_str!("inputs/input").lines();
         input
             .map(|game| {
                 let (id, info) = game.split_once(": ").unwrap();
