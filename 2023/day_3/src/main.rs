@@ -1,5 +1,4 @@
 use regex::Regex;
-use std::ops::Index;
 
 struct Solution;
 
@@ -13,6 +12,7 @@ impl Solution {
             let _ = line.chars().enumerate().for_each(|(x, c)| {
                 if !c.is_ascii_alphanumeric() && !(c == '.') {
                     symbols.push(Symbol {
+                        symbol: c,
                         line: i,
                         idx: x as isize,
                     })
@@ -41,14 +41,46 @@ impl Solution {
             })
             .collect();
         relevant_symbols.iter().for_each(|symbol| {
-            if symbol.idx >= (number.start as isize - 1) && symbol.idx <= (number.end as isize + 1)
-            {
-                // println!("symbol: {}, number_start: {}, number_end: {} for number {}", symbol.idx, (number.start as isize), (number.end as isize) as isize, number.number);
+            let range = (number.start as isize - 1)..=(number.end as isize + 1);
+            if range.contains(&symbol.idx) {
                 used = true
             }
         });
 
         used
+    }
+
+    pub fn check_for_gear(symbol: &Symbol, numbers: &Vec<Number>) -> usize {
+        let symbol_range = (symbol.idx - 1)..=(symbol.idx + 1);
+        let mut valid_numbers: Vec<usize> = Vec::new();
+        let relevant_numbers: Vec<&Number> = numbers
+            .iter()
+            .filter(|number| {
+                symbol.line as isize == (number.line - 1)
+                    || symbol.line as isize == (number.line + 1)
+                    || symbol.line as isize == number.line
+            })
+            .collect();
+
+        let sum = relevant_numbers
+            .iter()
+            .map(|number| {
+                let sum = if symbol_range.contains(&(number.start as isize))
+                    || symbol_range.contains(&(number.end as isize))
+                {
+                    valid_numbers.push(number.number);
+                    if valid_numbers.len() == 2 {
+                        return valid_numbers[0] * valid_numbers[1];
+                    }
+                    return 0;
+                } else {
+                    0
+                };
+                sum
+            })
+            .sum::<usize>();
+
+        sum
     }
 
     fn part_1() {
@@ -62,10 +94,27 @@ impl Solution {
 
         println!("part 1: {}", sum)
     }
+
+    fn part_2() {
+        let engine = Self::prepare();
+        let sum = engine
+            .symbols
+            .iter()
+            .map(|symbol| {
+                if symbol.symbol == '*' {
+                    return Self::check_for_gear(symbol, &engine.numbers);
+                }
+                return 0;
+            })
+            .sum::<usize>();
+
+        println!("part 2: {}", sum)
+    }
 }
 
 fn main() {
     Solution::part_1();
+    Solution::part_2();
 }
 #[derive(Debug)]
 struct Engine {
@@ -75,6 +124,7 @@ struct Engine {
 
 #[derive(Debug)]
 struct Symbol {
+    symbol: char,
     line: usize,
     idx: isize,
 }
