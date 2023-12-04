@@ -4,14 +4,11 @@ struct Solution;
 
 impl Solution {
     pub fn prepare() -> Vec<Numbers> {
-        let lines = include_str!("./inputs/test_input_1").lines();
+        let lines = include_str!("./inputs/input").lines();
         let numbers = lines
             .map(|line| {
                 let card: Vec<&str> = line.split(":").collect();
-                let card_number = card[0].split(" ").collect::<Vec<&str>>()[1]
-                    .replace(":", "")
-                    .parse::<usize>()
-                    .unwrap();
+
 
                 let mut my_str_numbers = card[1].split(" | ").collect::<Vec<&str>>()[1]
                     .split(" ")
@@ -31,7 +28,6 @@ impl Solution {
                     .map(|n| n.parse::<usize>().unwrap())
                     .collect();
                 Numbers {
-                    card_number,
                     win_numbers,
                     my_numbers,
                 }
@@ -76,24 +72,18 @@ impl Solution {
                         matches += 1
                     }
                 });
-                for i in 1..=matches {
-                    let copies = (*amounts.entry(index + i).or_insert(Matches { matches, copies: 1 })).copies;
-                    (*amounts.get_mut(&(index + i)).unwrap()).copies += (1 * copies);
+
+                let mut copies = (*amounts.entry(index).or_insert(Matches { matches, copies: 1 })).copies;
+                for i in  1..=matches {
+                    let index = index + 1;
+                    copies = (*amounts.entry(index).or_insert(Matches { matches, copies: 1 })).copies;
+                    (*amounts.entry(index + i).or_insert(Matches { matches, copies: 1 })).copies += (1 * copies);
                 }
-                // let key = index + 1;
-                // let copies: &Matches = amounts.get(&key).or(Some(&Matches{copies: 0, matches: 0})).unwrap();
-                // for x in 1..=copies.copies {
-                //     for i in 1..=matches {
-                //         let key = key + i;
-                //         if key <= amounts.len() {
-                //             (*amounts.get_mut(&key).unwrap()).copies += 1;
-                //         }
-                //     }
-                // }
+
+
             });
         let sum: usize = amounts.iter().map(|(key, matches)| matches.copies).sum();
-        println!("{:?}", amounts);
-        println!("{:?}", sum);
+        println!("part 2 : {:?}", sum);
     }
 }
 
@@ -110,7 +100,6 @@ struct Matches {
 
 #[derive(Debug, Clone)]
 struct Numbers {
-    card_number: usize,
     my_numbers: Vec<usize>,
     win_numbers: Vec<usize>,
 }
