@@ -9,7 +9,6 @@ impl Solution {
             .map(|line| {
                 let card: Vec<&str> = line.split(":").collect();
 
-
                 let mut my_str_numbers = card[1].split(" | ").collect::<Vec<&str>>()[1]
                     .split(" ")
                     .collect::<Vec<&str>>();
@@ -58,30 +57,34 @@ impl Solution {
         println!("part 1 : {}", sum)
     }
 
-
     pub fn solve_second() {
         let mut numbers = Self::prepare();
         let mut amounts = HashMap::new();
-        numbers
-            .iter().enumerate()
-            .for_each(|(index, card)| {
-                let mut matches: usize = 0;
+        numbers.iter().enumerate().for_each(|(index, card)| {
+            let mut matches: usize = 0;
 
-                card.my_numbers.iter().for_each(|number| {
-                    if card.win_numbers.contains(number) {
-                        matches += 1
-                    }
-                });
-
-                let mut copies = (*amounts.entry(index).or_insert(Matches { matches, copies: 1 })).copies;
-                for i in  1..=matches {
-                    let index = index + 1;
-                    copies = (*amounts.entry(index).or_insert(Matches { matches, copies: 1 })).copies;
-                    (*amounts.entry(index + i).or_insert(Matches { matches, copies: 1 })).copies += (1 * copies);
+            card.my_numbers.iter().for_each(|number| {
+                if card.win_numbers.contains(number) {
+                    matches += 1
                 }
-
-
             });
+
+            let mut copies = (*amounts
+                .entry(index)
+                .or_insert(Matches { matches, copies: 1 }))
+            .copies;
+            for i in 1..=matches {
+                let index = index + 1;
+                copies = (*amounts
+                    .entry(index)
+                    .or_insert(Matches { matches, copies: 1 }))
+                .copies;
+                (*amounts
+                    .entry(index + i)
+                    .or_insert(Matches { matches, copies: 1 }))
+                .copies += (1 * copies);
+            }
+        });
         let sum: usize = amounts.iter().map(|(key, matches)| matches.copies).sum();
         println!("part 2 : {:?}", sum);
     }
