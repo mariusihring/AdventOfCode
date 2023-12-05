@@ -1,59 +1,65 @@
-use regex::Regex;
+use std::ops::Range;
 
 struct Solution;
 
 impl Solution {
-    pub fn prepare() -> Vec<Map> {
-        let map_regex =
-            Regex::new(r#"(\w+ map:)\s*((\d+\s+){2}\d+\s*)+"#).expect("Failed to build regex");
-        let content: Vec<&str> = include_str!("./inputs/test_input")
-            .split("\r\n\r\n")
+    pub fn prepare() -> PrepareResponse {
+        let input = include_str!("./inputs/input");
+        let mut split = input.split("\n\n");
+
+        let mut seeds: Vec<usize> = split
+            .next()
+            .unwrap()
+            .strip_prefix("seeds: ")
+            .unwrap()
+            .split_whitespace()
+            .map(|seed| seed.parse().unwrap())
             .collect();
 
-        content
-            .iter()
+        let maps: Vec<Vec<(Range<usize>, Range<usize>)>> = split
             .map(|map| {
-                let mut name = String::new();
-                let mut ranges: Vec<Range> = Vec::new();
-                map.lines().enumerate().for_each(|(index, line)| {
-                    if index == 0 {
-                        name = line.replace(":", "")
-                    } else {
-                        let nums: Vec<&str> = line.split(" ").collect();
-                        ranges.push(Range {
-                            dest_start: nums[0].parse::<usize>().unwrap(),
-                            source_start: nums[1].parse::<usize>().unwrap(),
-                            range: nums[2].parse::<usize>().unwrap(),
-                        })
-                    }
-                });
-                Map {
-                    name: name.to_owned(),
-                    ranges,
-                }
+                map.lines()
+                    .skip(1)
+                    .map(|range| {
+                        let nums = range
+                            .split_whitespace()
+                            .map(|num| num.parse().unwrap())
+                            .collect::<Vec<usize>>();
+                        (nums[1]..(nums[1] + nums[2]), nums[0]..(nums[0] + nums[2]))
+                    })
+                    .collect::<Vec<(Range<usize>, Range<usize>)>>()
             })
-            .collect::<Vec<Map>>()
+            .collect();
+
+        PrepareResponse {seeds, maps}
     }
 
     pub fn solve_first() {
-        let maps = Self::prepare();
+        let mut prepare = Self::prepare();
+        for map in prepare.maps {
+            for seed in prepare.seeds.iter_mut() {
+                *seed = map.iter().find_map(|m| {
+                    if m.0.start <= *seed && m.0.end > *seed {
+                        Some(m.1.start + *seed - m.0.start)
+                    } else {
+                        None
+                    }
+                }).unwrap_or(*seed)
+            }
 
-        let seeds: Vec<usize> = maps[0].name.split(" ").map()
+        }
+        let smallest = prepare.seeds.iter().min().copied().unwrap();
+
+        println!("part 1 : {:?}", smallest)
     }
 }
 
 fn main() {
-    Solution::prepare();
+   Solution::solve_first()
 }
 
 #[derive(Debug)]
-struct Map {
-    name: String,
-    ranges: Vec<Range>,
-}
-#[derive(Debug)]
-struct Range {
-    dest_start: usize,
-    source_start: usize,
-    range: usize,
+struct PrepareResponse {
+    seeds: Vec<usize>,
+    maps: Vec<Vec<(Range<usize>, Range<usize>)>>
 }
