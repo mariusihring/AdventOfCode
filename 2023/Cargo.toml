@@ -4,3 +4,4 @@ members = ["day_*",]
 
 [workspace.dependencies]
 regex = "1.10.2"
+indexmap = "2.1.0"
