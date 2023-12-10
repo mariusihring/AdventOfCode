@@ -55,10 +55,36 @@ impl Solution {
 
         println!("part 1 : {:?}", sum)
     }
+
+    pub fn solve_second () {
+        let mut reports = Self::prepare();
+
+        let sum: isize = reports.iter_mut().map(|mut report| {
+            let first = Self::get_differences(&report.line);
+            report.differences.push(first);
+            'get_children: loop {
+                let diffs = Self::get_differences(&report.differences.last().unwrap());
+                report.differences.push(diffs.clone());
+                if diffs.iter().all(|x| x == &0) {
+                    break 'get_children;
+                }
+            }
+            let len = report.differences.len() - 1;
+            for index in (0..len).rev() {
+                let last_value = report.differences[index].first().cloned().unwrap_or_default();
+                let current_last = report.differences[index + 1].first().cloned().unwrap_or_default();
+                report.differences[index].insert(0, last_value - current_last);
+            }
+            report.line.first().unwrap() - report.differences[0].first().unwrap()
+        }).sum();
+
+        println!("part 2 : {:?}", sum)
+    }
 }
 
 fn main() {
     Solution::solve_first();
+    Solution::solve_second();
 }
 
 #[derive(Debug)]
